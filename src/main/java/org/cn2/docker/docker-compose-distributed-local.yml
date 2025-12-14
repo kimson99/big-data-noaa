@@ -34,12 +34,16 @@ services:
       - ./hadoop.env
     ports:
       - 8088:8088
+      - 8032:8032
 
   nodemanager1:
     image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
     container_name: nodemanager
     environment:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
+    volumes:
+      - ./data/yarn_temp:/hadoop/yarn/local
+      - ./data/yarn_logs:/hadoop/yarn/logs
     env_file:
       - ./hadoop.env
     ports:
@@ -76,6 +80,18 @@ services:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 zoo:2181"
     ports:
       - 16010:16010
+      - 16000:16000
+  hbase-thrift:
+    image: bde2020/hbase-master:1.0.0-hbase1.2.6
+    container_name: hbase-thrift
+    hostname: hbase-thrift
+    env_file:
+      - ./hbase-distributed-local.env
+    environment:
+      SERVICE_PRECONDITION: "hbase-master:16010"
+    command: hbase thrift start
+    ports:
+      - "9090:9090"
 
   hbase-region:
     image: bde2020/hbase-regionserver:1.0.0-hbase1.2.6
@@ -88,8 +104,29 @@ services:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 zoo:2181 hbase-master:16010"
     ports:
       - 16030:16030
+      - 16020:16020
+#  hbase:
+#    image: bde2020/hbase-standalone:1.0.0-hbase1.2.6
+#    container_name: hbase
+#    volumes:
+#      - hbase_data:/hbase-data
+#      - hbase_zookeeper_data:/zookeeper-data
+#    ports:
+#      - 16000:16000
+#      - 16010:16010
+#      - 16020:16020
+#      - 16030:16030
+#      - 2888:2888
+#      - 3888:3888
+#      - 2181:2181
+#    environment:
+#      SERVICE_PRECONDITION: "namenode:50070 datanode:50075"
+#    env_file:
+#      - ./hbase-standalone.env
 
 volumes:
   hadoop_namenode:
   hadoop_datanode:
   hadoop_historyserver:
+#  hbase_data:
+#  hbase_zookeeper_data:

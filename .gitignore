@@ -41,3 +41,4 @@ build/
 src/main/resources/data
 
 src/main/java/org/cn2/docker/data
+file_station_list.txt

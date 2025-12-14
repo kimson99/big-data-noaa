@@ -2,14 +2,15 @@
 - Docker
 - Ubuntu (using 24.04)
 - Java 8 to run the MapReduce
+- Python 3.12
 
 From org.cn2
 # Docker
 - `docker compose -f docker/docker-compose-distributed-local.yml`
 - Add this for namespace in `/etc/hosts`
 ```
-127.0.0.1	localhost   namenode datanode1 datanode2 datanode3
-::1             localhost namenode datanode1 datanode2 datanode3
+127.0.0.1	localhost   namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zknode1 hbase-master hbase-region
+::1             localhost   namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zknode1 hbase-master hbase-region
 ```
 
 # Download data
@@ -27,3 +28,7 @@ or
 - Run `hdfs dfs -put hadoop_data_input/csv/*.csv.gz /data/` to copy files to HDFS
 
 Can run the job after doing all the above
+
+# Streamlit UI
+- Install packages `pip install -r requirements.txt`
+- `streamlit run app.py`

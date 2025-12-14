@@ -3,9 +3,11 @@ package org.cn2.weather;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.CombineTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.log4j.BasicConfigurator;
@@ -13,8 +15,15 @@ import org.apache.log4j.BasicConfigurator;
 public class WeatherJob {
   public static void main(String[] args) throws Exception {
     BasicConfigurator.configure();
-
     Configuration conf = new Configuration();
+    String NAME_NODE = "hdfs://namenode:9000";
+    conf.set("fs.defaultFS", NAME_NODE);
+//    conf.set("mapreduce.framework.name", "yarn");
+//    conf.set("mapreduce.resourcemanager.address", "resourcemanager:8082");
+//    conf.set("mapreduce.app-submission.cross-platform", "true");
+    String user = System.getProperty("user.name");
+    conf.set("yarn.app.mapreduce.am.staging-dir", "hdfs://namenode:9000/tmp/hadoop-yarn/staging");
+    conf.set("mapreduce.cluster.local.dir", "/home/" + user + "/hadoop_data/temp");
 
     Job job = Job.getInstance(conf, "Station Weather");
     job.setJarByClass(WeatherJob.class);
@@ -26,19 +35,22 @@ public class WeatherJob {
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(WeatherStats.class);
 
-    String inputPathStr = "hdfs://namenode:9000/data/";
+    String inputPathStr = "hdfs://namenode:9000/station/";
     String outputPathStr = "hdfs://namenode:9000/weather_output";
 
     Path inputPath = new Path(inputPathStr);
     Path outputPath = new Path(outputPathStr);
     // ---------------------------------
-    String NAME_NODE = "hdfs://namenode:9000";
-    conf.set("fs.defaultFS", NAME_NODE);
+
     // Clean up output directory in HDFS if it exists
     FileSystem fs = FileSystem.get(conf);
     if (fs.exists(outputPath)) {
       fs.delete(outputPath, true);
     }
+
+    job.setInputFormatClass(CombineTextInputFormat.class);
+    // 128 * 1024 * 1024 = 134217728 bytes
+    CombineTextInputFormat.setMaxInputSplitSize(job, 134217728);
 
     FileInputFormat.addInputPath(job, inputPath);
     FileOutputFormat.setOutputPath(job, outputPath);
