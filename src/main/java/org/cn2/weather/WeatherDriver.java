@@ -3,7 +3,6 @@ package org.cn2.weather;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -12,7 +11,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.log4j.BasicConfigurator;
 
-public class WeatherJob {
+public class WeatherDriver {
   public static void main(String[] args) throws Exception {
     BasicConfigurator.configure();
     Configuration conf = new Configuration();
@@ -26,7 +25,7 @@ public class WeatherJob {
     conf.set("mapreduce.cluster.local.dir", "/home/" + user + "/hadoop_data/temp");
 
     Job job = Job.getInstance(conf, "Station Weather");
-    job.setJarByClass(WeatherJob.class);
+    job.setJarByClass(WeatherDriver.class);
     job.setMapperClass(WeatherMapper.class);
     job.setReducerClass(WeatherReducer.class);
 

@@ -29,6 +29,10 @@ or
 
 Can run the job after doing all the above
 
+# Station Metadata
+- Download `ghcnd-stations.csv` and punt in `/resources/data`
+- Run `StationMetadataInitializer` to import station metadata to HBase
+
 # Streamlit UI
 - Install packages `pip install -r requirements.txt`
 - `streamlit run app.py`
