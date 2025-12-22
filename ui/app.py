@@ -4,6 +4,8 @@ import numpy as np
 
 from station import load_station_data
 from trend import load_global_trend_data
+from trend_station import load_station_trend_data
+
 
 # 1. SETUP PAGE
 st.set_page_config(layout="wide", page_title="NOAA Weather Dashboard")
@@ -90,12 +92,19 @@ def view_detail():
 
   st.divider()
 
-  # Trend Section (Placeholder)
-  st.subheader("Temperature Trend Analysis")
-  st.info("🚧 No historical data available yet. This chart will display the yearly trend once the time-series MapReduce job is connected.")
 
-  # Visual placeholder to show what it WILL look like
-  # st.line_chart(...)
+  st.subheader("Temperature Trend Analysis")
+  
+  df_trend = load_station_trend_data(station['station_id'])
+  
+  if not df_trend.empty:
+    df_trend["Year"] = df_trend["Year"].astype(str)
+    st.line_chart(
+      df_trend.set_index("Year")[["Max", "Average", "Min"]],
+      color=["#FF4B4B", "#FFA500", "#1E90FF"]
+    )
+  else:
+    st.info("No historical data available for this station yet. (Run 'Station-Year Trend Analysis' job to populate)")
 
 # 4. MAIN EXECUTION
 df_station_data = load_station_data()

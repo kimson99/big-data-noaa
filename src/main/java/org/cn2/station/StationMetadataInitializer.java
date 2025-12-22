@@ -26,7 +26,7 @@ public class StationMetadataInitializer {
     BasicConfigurator.configure();
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.zookeeper.property.clientPort", "2181");
-    conf.set("hbase.zookeeper.quorum", "zknode1");
+    conf.set("hbase.zookeeper.quorum", "zoo");
 
     TableName tableName = TableName.valueOf("station");
 
@@ -68,17 +68,17 @@ public class StationMetadataInitializer {
       int count = 0;
 
       while ((line = reader.readLine()) != null) {
-        if (line.trim().isEmpty()) continue;
+        if (line.trim().isEmpty())
+          continue;
 
         try {
-          String[] splitted =  line.split(",");
-          if (splitted.length != 9) {
+          String[] splitted = line.split(",");
+          if (splitted.length < 6) {
             continue;
           }
           String id = splitted[0].trim();
           String lat = splitted[1].trim();
           String lon = splitted[2].trim();
-
 
           String elevation = splitted[3].trim();
           String state = splitted[4].trim();

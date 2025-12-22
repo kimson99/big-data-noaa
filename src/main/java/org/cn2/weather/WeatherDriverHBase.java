@@ -22,14 +22,13 @@ public class WeatherDriverHBase {
     BasicConfigurator.configure();
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.zookeeper.property.clientPort", "2181");
-    conf.set("hbase.zookeeper.quorum", "zknode1");
+    conf.set("hbase.zookeeper.quorum", "zoo");
 
     String NAME_NODE = "hdfs://namenode:9000";
     conf.set("fs.defaultFS", NAME_NODE);
     String user = System.getProperty("user.name");
     conf.set("yarn.app.mapreduce.am.staging-dir", "hdfs://namenode:9000/tmp/hadoop-yarn/staging");
     conf.set("mapreduce.cluster.local.dir", "/home/" + user + "/hadoop_data/temp");
-
 
     // HBase
     // Establish connection to HBase
@@ -75,10 +74,9 @@ public class WeatherDriverHBase {
 
     String targetTableName = "weather_data";
     TableMapReduceUtil.initTableReducerJob(
-      targetTableName,
-      WeatherReducerHBase.class,
-      job
-    );
+        targetTableName,
+        WeatherReducerHBase.class,
+        job);
 
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
