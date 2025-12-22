@@ -7,7 +7,7 @@ public class HadoopConnection {
   public Configuration init() {
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.zookeeper.property.clientPort", "2181");
-    conf.set("hbase.zookeeper.quorum", "zknode1");
+    conf.set("hbase.zookeeper.quorum", "zoo");
 
     String NAME_NODE = "hdfs://namenode:9000";
     conf.set("fs.defaultFS", NAME_NODE);
