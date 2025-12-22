@@ -31,7 +31,7 @@ def print_header(title):
 def check_jar():
     if not os.path.exists(JAR_SOURCE):
         print(f"Error: JAR file not found at {JAR_SOURCE}")
-        print("Please run 'mvn clean install -DskipTests' first.")
+        print("Please run 'mvn clean install' first.")
         return False
     return True
 
@@ -76,10 +76,16 @@ def menu_run_job():
 
     while True:
         print("\n--- Run MapReduce/HBase Job ---")
-        print("1) StationMetadataInitializer (HBase Setup)")
-        print("2) Upload HBase Dependencies to HDFS (Fix for FileNotFoundException)")
-        print("3) WeatherDriverHBase (Weather Data Processing)")
-        print("4) GlobalTrendDriver (Global Trend Analysis)")
+        print("---SETUP---")
+        print("1) StationMetadataInitializer")
+        print("2) Upload HBase Dependencies to HDFS")
+        print("\n")
+        print("---RUN JOB---")
+        print("3) Weather Data Processing")
+        print("4) Global Trend Analysis")
+        print("5) Station-Year Trend Analysis")
+        print("\n")
+        print("---EXIT---")
         print("0) Back to Main Menu")
         
         choice = input("Enter choice: ").strip()
@@ -92,6 +98,8 @@ def menu_run_job():
             run_java_class("org.cn2.weather.WeatherDriverHBase")
         elif choice == '4':
             run_java_class("org.cn2.trend.global.GlobalTrendDriver")
+        elif choice == '5':
+            run_java_class("org.cn2.trend.station.StationYearTrendDriver")
         elif choice == '0':
             break
         else:
@@ -125,7 +133,7 @@ def menu_troubleshoot():
         
     # 2. Check Docker Containers
     print("2. Checking Docker Containers...")
-    required_containers = [HBASE_CONTAINER, NAMENODE_CONTAINER, "zoo"] # Keeping 'zoo' as requested
+    required_containers = [HBASE_CONTAINER, NAMENODE_CONTAINER, "zoo"]
     
     for container in required_containers:
         print(f"   - {container}: ", end="")
@@ -143,13 +151,13 @@ def menu_troubleshoot():
     else:
         print("MISSING")
 
-    input("\nPress cmd+click to continue...")
+    input("\nPress cmd+enter to continue...")
 
 # --- Main CLI ---
 def main():
     while True:
         print_header("NOAA Big Data Project CLI")
-        print("1) Run Job (MapReduce / Setup)")
+        print("1) Run Setup/Job (Setup / Run Job)")
         print("2) Run UI (Streamlit)")
         print("3) Troubleshooting")
         print("0) Exit")
