@@ -1,50 +1,83 @@
-# Prerequisites
+# Project Run Guide
 
-- Docker
-- Ubuntu (using 24.04)
-- Java 8 to run the MapReduce
-- Python 3.12
+This guide provides corrected steps to run the project.
 
-`From org.cn2`
+## 1. Prerequisites
 
-# Docker
+- **Java 8**: Required for Hadoop/HBase compatibility.
+- **Python 3.12**: For the UI and scripts.
+- **Docker**: For running the distributed system locally.
+- **Maven**: To build the Java project.
 
-- cd to `/src/main/java/org/cn2/docker`
-- `docker compose -f docker-compose-distributed-local.yml up -d`
-- Add this for namespace in `/etc/hosts`
+## 2. Environment Setup
+
+### Hosts File
+
+Add the following to your `/etc/hosts` file (requires sudo):
 
 ```
-127.0.0.1	localhost   namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zknode1 hbase-master hbase-region
-::1             localhost   namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zknode1 hbase-master hbase-region
+127.0.0.1	localhost namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zoo hbase-master hbase-region
+::1             localhost namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zoo hbase-master hbase-region
 ```
 
-# Download data
+## 3. Start Docker
 
-Either run
+The Docker Compose file is located deep in the source tree. Run it from the project root:
 
-- `python3 scripts/download.py` (bit slow)
+```bash
+docker compose -f src/main/java/org/cn2/docker/docker-compose-distributed-local.yml up -d
+```
 
-or
+Check status: `docker ps`
 
-- `./scripts/download.sh'` (using aria2, might need to install it)
+## 4. Build Project
 
-# HDFS
+Return to the project root and build the JAR:
 
-- Copy data to `docker/data/csv`
-- Go into docker interactive mode `sudo docker exec namenode -it /bin/bash`
-- Run `hdfs dfs -mkdir /data` if to create directory
-- Run `hdfs dfs -put hadoop_data_input/csv/*.csv.gz /data/` to copy files to HDFS
+```bash
+mvn clean install -DskipTests
+```
 
-Can run the job after doing all the above
+## 5. HDFS Setup
 
-# Station Metadata
+Ensure your data is in HDFS. The code expects data at `/station/` directory.
 
-- Create `/resources/data` folder in `/main` directory
-- Download `ghcnd-stations.csv` and put in `/resources/data`.
-- Run `StationMetadataInitializer` to import station metadata to HBase
+1. Enter NameNode:
+   ```bash
+   docker exec -it namenode /bin/bash
+   ```
+2. Upload data (assuming you mapped folders correctly or have data inside container):
+   ```bash
+   hdfs dfs -mkdir -p /station
+   hdfs dfs -put /hadoop_data_input/csv/*.csv.gz /station/
+   ```
 
-# Streamlit UI
+## 6. Run Analytic Jobs (Using Python CLI)
 
-- From `/ui`
-- Install packages `pip install -r requirements.txt`
-- `streamlit run app.py`
+Use the **`run_noaa.py`** script to execute the MapReduce jobs or start the UI.
+
+```bash
+python3 run_noaa.py
+```
+
+Select **Option 1 (Run Job)** and then execute the steps in order:
+
+1. **StationMetadataInitializer** (Sets up tables).
+2. **Upload HBase Dependencies** (Critical Step to fix FileNotFound errors).
+3. **WeatherDriverHBase** (Processes raw weather data).
+4. **GlobalTrendDriver** (Calculates global trends).
+
+## 7. Run the UI (Using Python CLI)
+
+You can also launch the UI directly from the CLI:
+
+```bash
+python3 run_noaa.py
+# Select Option 2
+```
+
+## Troubleshooting
+
+- **FileNotFoundException (hbase-server-\*.jar)**: Run Job > Option 2 in `run_noaa.py`.
+- **Connection Refused**: Check `/etc/hosts` and ensure `hbase-thrift` is up on port 9090.
+- **Diagnostics**: Run `python3 run_noaa.py` and select **Option 3 (Troubleshooting)** to check containers and files.
