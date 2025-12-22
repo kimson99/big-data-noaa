@@ -20,7 +20,42 @@ Add the following to your `/etc/hosts` file (requires sudo):
 ::1             localhost namenode datanode1 datanode2 datanode3 resourcemanager nodemanager1 zoo hbase-master hbase-region
 ```
 
-## 3. Start Docker
+## 3. Download Data
+
+Choose one of the following options:
+
+1.  **Data by Stations**: Information about stations (Name, Location)
+2.  **Data by Year**: Daily recordings (TMIN, TMAX, etc.)
+
+### 3.1 Data by Stations (Recommended)
+
+This is required for the UI map to work.
+
+```bash
+cd src/main/java/org/cn2/scripts
+./download-station.sh
+```
+
+### 3.2 Data by Year
+
+You can use either Python or Shell script (using `aria2c` for speed).
+
+**Option A: Python (Simpler)**
+
+```bash
+cd src/main/java/org/cn2/scripts
+python3 download.py
+```
+
+**Option B: Shell (Faster)**
+Requires `aria2c` installed.
+
+```bash
+cd src/main/java/org/cn2/scripts
+./download.sh
+```
+
+## 4. Start Docker
 
 The Docker Compose file is located deep in the source tree. Run it from the project root:
 
@@ -30,7 +65,19 @@ docker compose -f src/main/java/org/cn2/docker/docker-compose-distributed-local.
 
 Check status: `docker ps`
 
-## 4. Build Project
+Create the destination directory:
+
+```bash
+mkdir -p src/main/java/org/cn2/docker/data/csv
+```
+
+Copy the files:
+
+```bash
+cp src/main/resources/data/station/*.csv.gz src/main/java/org/cn2/docker/data/csv/
+```
+
+## 5. Build Project
 
 Return to the project root and build the JAR:
 
@@ -38,7 +85,7 @@ Return to the project root and build the JAR:
 mvn clean install
 ```
 
-## 5. HDFS Setup
+## 6. HDFS Setup
 
 Ensure your data is in HDFS. The code expects data at `/station/` directory.
 
@@ -52,7 +99,7 @@ Ensure your data is in HDFS. The code expects data at `/station/` directory.
    hdfs dfs -put /hadoop_data_input/csv/*.csv.gz /station/
    ```
 
-## 6. Run Analytic Jobs (Using Python CLI)
+## 7. Run Analytic Jobs (Using Python CLI)
 
 Use the **`run_noaa.py`** script to execute the MapReduce jobs or start the UI.
 
@@ -63,11 +110,12 @@ python3 run_noaa.py
 Select **Option 1 (Run Job)** and then execute the steps in order:
 
 1. **StationMetadataInitializer** (Sets up tables).
-2. **Upload HBase Dependencies** (Critical Step to fix FileNotFound errors).
-3. **WeatherDriverHBase** (Processes raw weather data).
-4. **GlobalTrendDriver** (Calculates global trends).
+2. **Upload HBase Dependencies to HDFS**
+3. **Weather Data Processing**
+4. **Global Trend Analysis**
+5. **Station-Year Trend Analysis**
 
-## 7. Run the UI (Using Python CLI)
+## 8. Run the UI (Using Python CLI)
 
 You can also launch the UI directly from the CLI:
 
