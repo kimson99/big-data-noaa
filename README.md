@@ -35,7 +35,7 @@ Check status: `docker ps`
 Return to the project root and build the JAR:
 
 ```bash
-mvn clean install -DskipTests
+mvn clean install
 ```
 
 ## 5. HDFS Setup
