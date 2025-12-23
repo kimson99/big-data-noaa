@@ -3,3 +3,4 @@ happybase
 pandas
 plotly
 numpy
+thrift

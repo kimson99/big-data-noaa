@@ -42,3 +42,7 @@ src/main/resources/data
 
 src/main/java/org/cn2/docker/data
 file_station_list.txt
+
+# temp files
+/temp_hbase_libs/
+aria2c.exe

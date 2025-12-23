@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal
 
 set "BASE_URL=https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/"
 set "LIST_FILE=file_station_list.txt"
@@ -10,31 +10,22 @@ if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
 echo Fetching file list from %BASE_URL%...
 
-:: Use PowerShell to scrape the file list because valid parsing needs regex
-powershell -Command "$web = Invoke-WebRequest -Uri '%BASE_URL%'; $regex = 'href=\"([^\"]+\.csv\.gz)\"'; [regex]::Matches($web.Content, $regex) | Select-Object -First %MAX_FILES% | ForEach-Object { '%BASE_URL%' + $_.Groups[1].Value } | Out-File -Encoding ascii '%LIST_FILE%'"
+:: 🔥 DÒNG DUY NHẤT — không ngắt, không ^, không lỗi parse
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$u='%BASE_URL%';$w=Invoke-WebRequest -Uri $u -UseBasicParsing;$r='href=\"([^\"]+\.csv\.gz)\"';$m=[regex]::Matches($w.Content,$r)|Select-Object -First %MAX_FILES%;if(!$m){exit 1};$m|%%{$u+$_.Groups[1].Value}|Out-File '%LIST_FILE%' -Enc ascii"
 
-:: Check if file list was created and has content
-for %%A in ("%LIST_FILE%") do if %%~zA==0 (
-    echo Error: No files found or network issue.
-    goto :EOF
-)
-
-echo Found files. Downloading to %OUTPUT_DIR%...
-
-:: Check if aria2c exists
-where aria2c >nul 2>nul
-if %errorlevel% neq 0 (
-    echo Error: aria2c is not installed or not in PATH.
-    echo Please install aria2c or use the provided java downloader.
+if errorlevel 1 (
+    echo ❌ Failed to fetch file list. Check internet or URL.
     exit /b 1
 )
 
-:: Run aria2c
-aria2c -i "%LIST_FILE%" ^
-       -x16 -s16 -j4 ^
-       -d "%OUTPUT_DIR%" ^
-       --continue=true ^
-       --file-allocation=none
+:: Kiểm tra aria2c
+where aria2c >nul 2>&1 || (
+    echo ❌ aria2c.exe not found. Put it in this folder or add to PATH.
+    exit /b 1
+)
 
-echo Download complete.
-endlocal
+echo Downloading %MAX_FILES% files to %OUTPUT_DIR%...
+aria2c -i "%LIST_FILE%" -x16 -s16 -j4 -d "%OUTPUT_DIR%" --continue=true --file-allocation=none --max-tries=3
+
+echo Done.
+del "%LIST_FILE%"
